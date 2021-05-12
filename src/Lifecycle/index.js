@@ -39,7 +39,7 @@ export const store = {
     return this._current
   },
   set current(v) {
-    if (supportedStates.indexOf(v) && this.current !== v) {
+    if (supportedStates.includes(v) && this.current !== v) {
       this._previous = this._current
       this._current = v
       Log.info('Lifecycle', 'State changed from ' + this._previous + ' to ' + this._current)

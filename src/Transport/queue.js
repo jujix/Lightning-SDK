@@ -20,8 +20,8 @@
 let callback
 let queue = []
 
-function send(json) {
-  queue.push(json)
+function send(message) {
+  queue.push(message)
 }
 
 function receive(_callback) {

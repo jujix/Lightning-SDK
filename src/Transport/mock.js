@@ -25,6 +25,7 @@ import { default as metrics } from '../Metrics/defaults'
 import { default as platform } from '../Platform/defaults'
 
 import { emit } from '../Events'
+import { store } from '../Lifecycle'
 
 let mock = {
   advertising: advertising,
@@ -41,11 +42,22 @@ let events = {
 
 let callback
 
-function send(json) {
+function send(message) {
+  let json = JSON.parse(message)
   setTimeout(() =>
-    callback({ jsonrpc: '2.0', result: getResult(json.method, json.params), id: json.id })
+    callback(
+      JSON.stringify({ jsonrpc: '2.0', result: getResult(json.method, json.params), id: json.id })
+    )
   )
 }
+
+const validStateTransitions = {}
+validStateTransitions['initializing'] = ['inactive']
+validStateTransitions['inactive'] = ['foreground', 'background', 'suspended', 'unloading']
+validStateTransitions['foreground'] = ['inactive', 'background']
+validStateTransitions['background'] = ['inactive', 'foreground']
+validStateTransitions['suspended'] = ['inactive']
+validStateTransitions['unloading'] = []
 
 function receive(_callback) {
   callback = _callback
@@ -54,6 +66,10 @@ function receive(_callback) {
     emit: function(module, event) {
       module = module.toLowerCase()
       if (events[module] && events[module][event]) emit(module, event, events[module][event])
+    },
+    state: function(s) {
+      if (validStateTransitions[store.current].includes(s)) store.current = s
+      else throw "ERROR: Cannot transition from '" + store.current + "' to '" + s + "'."
     },
   }
 }

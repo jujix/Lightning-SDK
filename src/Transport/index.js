@@ -79,7 +79,7 @@ const send = (module, method, params) => {
 
   let json = { jsonrpc: '2.0', method: module + '.' + method, params: params, id: id }
   id++
-  transport.send(json)
+  transport.send(JSON.stringify(json))
 
   return p
 }
@@ -87,7 +87,8 @@ const send = (module, method, params) => {
 transport = getTransportLayer()
 
 // TODO: clean up resolved promises
-transport.receive(json => {
+transport.receive(message => {
+  let json = JSON.parse(message)
   let p = promises[json.id]
 
   if (p) {
